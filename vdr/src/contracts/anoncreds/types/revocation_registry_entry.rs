@@ -153,7 +153,10 @@ impl TryFrom<&RevocationRegistryEntry> for ContractParam {
 pub mod test {
     use super::*;
 
-    pub fn revocation_registry_entry_data(revoked_incices: Option<Vec<u32>>, accum: Option<&str>, ) -> RevocationRegistryEntryData {
+    pub fn revocation_registry_entry_data(
+        revoked_incices: Option<Vec<u32>>,
+        accum: Option<&str>,
+    ) -> RevocationRegistryEntryData {
         RevocationRegistryEntryData {
             current_accumulator: Accumulator::from("currentAccum"),
             prev_accumulator: match accum {

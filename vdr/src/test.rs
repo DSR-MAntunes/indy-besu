@@ -6,9 +6,9 @@ use crate::{
     client::client::test::{client, TRUSTEE_ACCOUNT},
     contracts::{
         anoncreds::types::{
-            credential_definition::test::credential_definition, schema::test::schema, 
+            credential_definition::test::credential_definition,
             revocation_registry_definition::test::revocation_registry_definition,
-            revocation_registry_entry::test::revocation_registry_entry,
+            revocation_registry_entry::test::revocation_registry_entry, schema::test::schema,
         },
         auth::{role_control, Role},
         did::{did_indy_registry, types::did_doc::test::did_doc, DidRecord, DID, ETHR_DID_METHOD},
@@ -532,7 +532,7 @@ mod credential_definition {
             .unwrap();
 
         super::helpers::endorse_transaction(&client, &signer, transaction_endorsing_data).await;
-        
+
         credential_definition
     }
 
@@ -588,7 +588,8 @@ mod credential_definition {
         let schema = super::schema::endorse_schema(&client, &did, &signer).await;
 
         // write
-        let credential_definition = endorse_credential_definition(&client, &did, &schema, &signer).await;
+        let credential_definition =
+            endorse_credential_definition(&client, &did, &schema, &signer).await;
 
         // read
         let resolved_credential_definition =
@@ -604,7 +605,10 @@ mod credential_definition {
 
 mod revocation_registry_definition {
     use super::*;
-    use crate::{credential_definition_registry, schema_registry, revocation_registry, CredentialDefinition, RevocationRegistryDefinition};
+    use crate::{
+        credential_definition_registry, revocation_registry, schema_registry, CredentialDefinition,
+        RevocationRegistryDefinition,
+    };
 
     pub(crate) async fn endorse_revocation_registry_definition(
         client: &LedgerClient,
@@ -612,7 +616,8 @@ mod revocation_registry_definition {
         credential_definition: &CredentialDefinition,
         signer: &BasicSigner,
     ) -> RevocationRegistryDefinition {
-        let revocation_registry_definition = revocation_registry_definition(&did, &credential_definition.id(), None);
+        let revocation_registry_definition =
+            revocation_registry_definition(&did, &credential_definition.id(), None);
         let transaction_endorsing_data =
             revocation_registry::build_create_revocation_registry_definition_endorsing_data(
                 &client,
@@ -655,14 +660,16 @@ mod revocation_registry_definition {
         super::helpers::sign_and_submit_transaction(&client, transaction, &signer).await;
 
         // write
-        let revocation_registry = revocation_registry_definition(&did, &credential_definition.id(), None);
-        let transaction = revocation_registry::build_create_revocation_registry_definition_transaction(
-            &client,
-            &TRUSTEE_ACCOUNT,
-            &revocation_registry,
-        )
-        .await
-        .unwrap();
+        let revocation_registry =
+            revocation_registry_definition(&did, &credential_definition.id(), None);
+        let transaction =
+            revocation_registry::build_create_revocation_registry_definition_transaction(
+                &client,
+                &TRUSTEE_ACCOUNT,
+                &revocation_registry,
+            )
+            .await
+            .unwrap();
         super::helpers::sign_and_submit_transaction(&client, transaction, &signer).await;
 
         // read
@@ -689,10 +696,15 @@ mod revocation_registry_definition {
         let schema = super::schema::endorse_schema(&client, &did, &signer).await;
 
         // create Credential Definition
-        let credential_definition = super::credential_definition::endorse_credential_definition(&client, &did, &schema, &signer).await;
+        let credential_definition = super::credential_definition::endorse_credential_definition(
+            &client, &did, &schema, &signer,
+        )
+        .await;
 
         // write
-        let revocation_registry_definition = endorse_revocation_registry_definition(&client, &did, &credential_definition, &signer).await;
+        let revocation_registry_definition =
+            endorse_revocation_registry_definition(&client, &did, &credential_definition, &signer)
+                .await;
 
         // read
         let resolved_revocation_registry =
@@ -703,22 +715,24 @@ mod revocation_registry_definition {
             .await
             .unwrap();
         assert_eq!(revocation_registry_definition, resolved_revocation_registry);
-
     }
-
 }
 
 mod revocation_registry_entry {
     use super::*;
-    use crate::{credential_definition_registry, revocation_registry, schema_registry, Accumulator, RevocationRegistryDefinition, RevocationRegistryEntry};
-    
+    use crate::{
+        credential_definition_registry, revocation_registry, schema_registry, Accumulator,
+        RevocationRegistryDefinition, RevocationRegistryEntry,
+    };
+
     pub(crate) async fn endorse_revocation_registry_entry(
         client: &LedgerClient,
         did: &DID,
         revocation_registry_definition: &RevocationRegistryDefinition,
         signer: &BasicSigner,
     ) -> RevocationRegistryEntry {
-        let revocation_registry_entry = revocation_registry_entry(&did, &revocation_registry_definition.id(), None, None);
+        let revocation_registry_entry =
+            revocation_registry_entry(&did, &revocation_registry_definition.id(), None, None);
         let transaction_endorsing_data =
             revocation_registry::build_create_revocation_registry_entry_endorsing_data(
                 &client,
@@ -751,29 +765,32 @@ mod revocation_registry_entry {
         // create Credential Definition
         let credential_definition = credential_definition(&did, &schema.id(), None);
         let transaction =
-        credential_definition_registry::build_create_credential_definition_transaction(
-            &client,
-            &TRUSTEE_ACCOUNT,
-            &credential_definition,
-        )
-        .await
-        .unwrap();
+            credential_definition_registry::build_create_credential_definition_transaction(
+                &client,
+                &TRUSTEE_ACCOUNT,
+                &credential_definition,
+            )
+            .await
+            .unwrap();
 
         super::helpers::sign_and_submit_transaction(&client, transaction, &signer).await;
 
         // create Revocation Registry Definition
-        let revocation_registry_definition = revocation_registry_definition(&did, &credential_definition.id(), None);
-        let transaction = revocation_registry::build_create_revocation_registry_definition_transaction(
-            &client,
-            &TRUSTEE_ACCOUNT,
-            &revocation_registry_definition,
-        )
-        .await
-        .unwrap();
+        let revocation_registry_definition =
+            revocation_registry_definition(&did, &credential_definition.id(), None);
+        let transaction =
+            revocation_registry::build_create_revocation_registry_definition_transaction(
+                &client,
+                &TRUSTEE_ACCOUNT,
+                &revocation_registry_definition,
+            )
+            .await
+            .unwrap();
         super::helpers::sign_and_submit_transaction(&client, transaction, &signer).await;
 
         // write
-        let revocation_registry_entry1 = revocation_registry_entry(&did, &revocation_registry_definition.id(), None, None);
+        let revocation_registry_entry1 =
+            revocation_registry_entry(&did, &revocation_registry_definition.id(), None, None);
         let transaction = revocation_registry::build_create_revocation_registry_entry_transaction(
             &client,
             &TRUSTEE_ACCOUNT,
@@ -786,10 +803,10 @@ mod revocation_registry_entry {
 
         // write 2
         let revocation_registry_entry2 = revocation_registry_entry(
-            &did, 
-            &revocation_registry_definition.id(), 
+            &did,
+            &revocation_registry_definition.id(),
             Some(vec![10, 11, 12]),
-            Some("prevAccum")
+            Some("prevAccum"),
         );
         let transaction = revocation_registry::build_create_revocation_registry_entry_transaction(
             &client,
@@ -799,44 +816,75 @@ mod revocation_registry_entry {
         .await
         .unwrap();
         super::helpers::sign_and_submit_transaction(&client, transaction, &signer).await;
-        
 
         // read
-        let revocation_status_list1 =
-            revocation_registry::resolve_revocation_registry_status_list(
-                &client,
-                &revocation_registry_definition.id(),
-                chrono::Utc::now().timestamp() as u64,
-            )
-            .await
-            .unwrap();
-        
+        let revocation_status_list1 = revocation_registry::resolve_revocation_registry_status_list(
+            &client,
+            &revocation_registry_definition.id(),
+            chrono::Utc::now().timestamp() as u64,
+        )
+        .await
+        .unwrap();
+
         // read 2
-        let revocation_status_list2 =
-            revocation_registry::resolve_revocation_registry_status_list(
-                &client,
-                &revocation_registry_definition.id(),
-                past_time,
-            )
-            .await
-            .unwrap();
+        let revocation_status_list2 = revocation_registry::resolve_revocation_registry_status_list(
+            &client,
+            &revocation_registry_definition.id(),
+            past_time,
+        )
+        .await
+        .unwrap();
 
-
-        let mut status_list1 = vec![0; revocation_registry_definition.value.max_cred_num.try_into().unwrap()];
-        let mut status_list2 = vec![0; revocation_registry_definition.value.max_cred_num.try_into().unwrap()];
-        for list1 in revocation_registry_entry1.rev_reg_entry_data.revoked.unwrap_or(vec![]).clone() {
+        let mut status_list1 = vec![
+            0;
+            revocation_registry_definition
+                .value
+                .max_cred_num
+                .try_into()
+                .unwrap()
+        ];
+        let mut status_list2 = vec![
+            0;
+            revocation_registry_definition
+                .value
+                .max_cred_num
+                .try_into()
+                .unwrap()
+        ];
+        for list1 in revocation_registry_entry1
+            .rev_reg_entry_data
+            .revoked
+            .unwrap_or(vec![])
+            .clone()
+        {
             status_list1[list1 as usize] = 1;
             status_list2[list1 as usize] = 1;
         }
-        for list2 in revocation_registry_entry2.rev_reg_entry_data.revoked.unwrap_or(vec![]).clone() {
+        for list2 in revocation_registry_entry2
+            .rev_reg_entry_data
+            .revoked
+            .unwrap_or(vec![])
+            .clone()
+        {
             status_list2[list2 as usize] = 1;
         }
-        
+
         assert_eq!(revocation_status_list1.revocation_list, status_list2);
         assert_eq!(revocation_status_list2.revocation_list, status_list1);
-        assert_eq!(revocation_registry_entry1.rev_reg_entry_data.current_accumulator, Accumulator::try_from(revocation_status_list1.current_accumulator.as_str()).unwrap());
-        assert_eq!(revocation_registry_entry1.issuer_id, revocation_status_list1.issuer_id);
-        assert_eq!(revocation_registry_entry1.rev_reg_def_id, revocation_status_list1.rev_reg_def_id);
+        assert_eq!(
+            revocation_registry_entry1
+                .rev_reg_entry_data
+                .current_accumulator,
+            Accumulator::try_from(revocation_status_list1.current_accumulator.as_str()).unwrap()
+        );
+        assert_eq!(
+            revocation_registry_entry1.issuer_id,
+            revocation_status_list1.issuer_id
+        );
+        assert_eq!(
+            revocation_registry_entry1.rev_reg_def_id,
+            revocation_status_list1.rev_reg_def_id
+        );
     }
 
     #[async_std::test]
@@ -852,29 +900,46 @@ mod revocation_registry_entry {
         let schema = super::schema::endorse_schema(&client, &did, &signer).await;
 
         // create Credential Definition
-        let credential_definition = super::credential_definition::endorse_credential_definition(&client, &did, &schema, &signer).await;
+        let credential_definition = super::credential_definition::endorse_credential_definition(
+            &client, &did, &schema, &signer,
+        )
+        .await;
 
         // create Revocation Registry Definition
-        let revocation_registry_definition = super::revocation_registry_definition::endorse_revocation_registry_definition(&client, &did, &credential_definition, &signer).await;
+        let revocation_registry_definition =
+            super::revocation_registry_definition::endorse_revocation_registry_definition(
+                &client,
+                &did,
+                &credential_definition,
+                &signer,
+            )
+            .await;
 
         // write
-        let revocation_registry_entry = endorse_revocation_registry_entry(&client, &did, &revocation_registry_definition, &signer).await;
+        let revocation_registry_entry = endorse_revocation_registry_entry(
+            &client,
+            &did,
+            &revocation_registry_definition,
+            &signer,
+        )
+        .await;
 
         // read
-        let revocation_status_list =
-            revocation_registry::resolve_revocation_registry_status_list(
-                &client,
-                &revocation_registry_entry.rev_reg_def_id,
-                chrono::Utc::now().timestamp() as u64,
-            )
-            .await
-            .unwrap();
-        
+        let revocation_status_list = revocation_registry::resolve_revocation_registry_status_list(
+            &client,
+            &revocation_registry_entry.rev_reg_def_id,
+            chrono::Utc::now().timestamp() as u64,
+        )
+        .await
+        .unwrap();
+
         // assert_eq!(revocation_registry_entry.rev_reg_entry_data.current_accumulator, Accumulator::try_from(revocation_status_list.current_accumulator.as_str()).unwrap());
         // assert_eq!(revocation_registry_entry.issuer_id, revocation_status_list.issuer_id);
-        assert_eq!(revocation_registry_entry.rev_reg_def_id, revocation_status_list.rev_reg_def_id);
+        assert_eq!(
+            revocation_registry_entry.rev_reg_def_id,
+            revocation_status_list.rev_reg_def_id
+        );
     }
-
 }
 
 mod role {

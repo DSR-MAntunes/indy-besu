@@ -2,8 +2,10 @@
 // https://www.dsr-corporation.com
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::CredentialDefinitionId;
-use crate::{contracts::did::types::did::DID, types::ContractParam, VdrError, VdrResult};
+use crate::{
+    contracts::did::types::did::DID, types::ContractParam, CredentialDefinitionId, VdrError,
+    VdrResult,
+};
 
 use crate::contracts::types::did::ParsedDid;
 use serde_derive::{Deserialize, Serialize};

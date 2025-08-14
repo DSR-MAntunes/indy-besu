@@ -96,7 +96,7 @@ describe('RevocationRegistry', function () {
     credDefIdSigned = createdCredDefIdSigned
   })
 
-  describe('Add/Resolve Revocation Degistry Definition with did:ethr Issuer', function () {
+  describe('Add/Resolve Revocation Registry Definition with did:ethr Issuer', function () {
     it('Should create and resolve Revocation Registry Definition', async function () {
       const ethrIssuerId = `did:ethr:${issuerAddress}`
       const { id, revRegDef } = createRevocationRegistryDefinitionObject({ issuerId: ethrIssuerId, credDefId })

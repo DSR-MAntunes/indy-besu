@@ -16,7 +16,9 @@ use log::{trace, warn};
 use log_derive::{logfn, logfn_inputs};
 use serde_json::json;
 use std::{
-    fmt::{Debug, Formatter}, str::FromStr, time::Duration
+    fmt::{Debug, Formatter},
+    str::FromStr,
+    time::Duration,
 };
 
 #[cfg(not(feature = "wasm"))]
@@ -213,7 +215,7 @@ impl Client for Web3Client {
             .eth()
             .logs(filter)
             .await
-            .map_err(|e | VdrError::GetTransactionError(e.to_string()))?;
+            .map_err(|e| VdrError::GetTransactionError(e.to_string()))?;
 
         let events: Vec<EventLog> = logs
             .into_iter()

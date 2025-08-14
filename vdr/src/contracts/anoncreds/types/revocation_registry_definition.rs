@@ -201,7 +201,7 @@ impl TryFrom<ContractOutput> for RevocationRegistryDefinitionRecord {
         let output_tuple = value.get_tuple(0)?;
         let revocation_registry_definition = RevocationRegistryDefinition::try_from(&output_tuple)?;
         let metadata = output_tuple.get_tuple(1)?;
-        
+
         let rev_reg_def_with_metadata = RevocationRegistryDefinitionRecord {
             revocation_registry_definition,
             metadata: RevocationRegistryDefinitionMetadata::try_from(metadata)?,

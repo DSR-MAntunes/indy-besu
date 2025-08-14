@@ -175,10 +175,7 @@ impl ContractOutput {
     }
 
     fn get_item(&self, index: usize) -> VdrResult<ContractParam> {
-        self
-            .0
-            .get(index)
-            .cloned().ok_or_else(|| {
+        self.0.get(index).cloned().ok_or_else(|| {
             VdrError::ContractInvalidResponseData("Missing address value".to_string())
         })
     }
