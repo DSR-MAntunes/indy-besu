@@ -982,7 +982,7 @@ pub mod test {
         }
     }
 
-    //TODO: 
+    //TODO:
     // mod build_resolve_revocation_registry_events {
     //     use crate::{
     //         client::{client::test::mock_custom_client, MockClient},
@@ -1006,7 +1006,7 @@ pub mod test {
     //         mock_client
     //             .expect_call_transaction()
     //             .returning(|_to, _data| Ok(vec![]));
-            
+
     //         mock_client
     //             .expect_submit_transaction()
     //             .returning(|_tx| Ok(vec![]));
