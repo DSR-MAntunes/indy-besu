@@ -732,7 +732,7 @@ mod revocation_registry_entry {
         signer: &BasicSigner,
     ) -> RevocationRegistryEntry {
         let revocation_registry_entry =
-            revocation_registry_entry(&did, &revocation_registry_definition.id(), None, None);
+            revocation_registry_entry(&did, &revocation_registry_definition.id(), None, None, None);
         let transaction_endorsing_data =
             revocation_registry::build_create_revocation_registry_entry_endorsing_data(
                 &client,
@@ -790,7 +790,7 @@ mod revocation_registry_entry {
 
         // write
         let revocation_registry_entry1 =
-            revocation_registry_entry(&did, &revocation_registry_definition.id(), None, None);
+            revocation_registry_entry(&did, &revocation_registry_definition.id(), None, Some("currentAccum"), None);
         let transaction = revocation_registry::build_create_revocation_registry_entry_transaction(
             &client,
             &TRUSTEE_ACCOUNT,
@@ -807,6 +807,7 @@ mod revocation_registry_entry {
             &revocation_registry_definition.id(),
             Some(vec![10, 11, 12]),
             Some("prevAccum"),
+            Some("currentAccum"),
         );
         let transaction = revocation_registry::build_create_revocation_registry_entry_transaction(
             &client,
@@ -875,7 +876,7 @@ mod revocation_registry_entry {
             revocation_registry_entry1
                 .rev_reg_entry_data
                 .current_accumulator,
-            Accumulator::try_from(revocation_status_list1.current_accumulator.as_str()).unwrap()
+            Accumulator::try_from(revocation_status_list2.current_accumulator.as_str()).unwrap()
         );
         assert_eq!(
             revocation_registry_entry1.issuer_id,

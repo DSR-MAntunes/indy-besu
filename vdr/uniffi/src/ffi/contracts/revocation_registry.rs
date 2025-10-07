@@ -10,13 +10,13 @@ use crate::{
 use indy_besu_vdr::{
     revocation_registry, Address, CredentialDefinitionId, RegistryType,
     RevocationRegistryDefinition as RevocationRegistryDefinition_, RevocationRegistryDefinitionId,
-    RevocationRegistryDefinitionValue, RevocationRegistryEntry as RevocationRegistryEntry_, DID,
-    RevocationStatusList as RevocationStatusList_,
+    RevocationRegistryDefinitionValue, RevocationRegistryEntry as RevocationRegistryEntry_,
+    RevocationStatusList as RevocationStatusList_, DID,
 };
 use serde::Deserialize;
 use serde_json::json;
-use uniffi::export;
 use std::str::FromStr;
+use uniffi::export;
 
 // Revocation Registry Definition functions
 
@@ -87,7 +87,7 @@ pub fn parse_revocation_registry_definition(
         &client.client,
         &bytes,
     )?;
-    Ok(json!(rev_reg_def))
+    Ok(JsonValue::from(json!(rev_reg_def)))
 }
 
 #[derive(uniffi::Record)]
@@ -106,7 +106,7 @@ impl From<RevocationRegistryDefinition_> for RevocationRegistryDefinition {
             revoc_def_type: rev_reg_def.revoc_def_type.to_str().to_string(),
             cred_def_id: rev_reg_def.cred_def_id.as_ref().to_string(),
             tag: rev_reg_def.tag,
-            value: serde_json::json!(rev_reg_def.value),
+            value: JsonValue::from(serde_json::json!(rev_reg_def.value)),
         }
     }
 }
@@ -118,8 +118,10 @@ impl From<&RevocationRegistryDefinition> for RevocationRegistryDefinition_ {
             revoc_def_type: RegistryType::from_str(rev_reg_def.revoc_def_type.as_str()).unwrap(),
             cred_def_id: CredentialDefinitionId::from(rev_reg_def.cred_def_id.as_str()),
             tag: rev_reg_def.tag.to_string(),
-            value: RevocationRegistryDefinitionValue::deserialize(rev_reg_def.value.clone())
-                .unwrap(),
+            value: RevocationRegistryDefinitionValue::deserialize(
+                rev_reg_def.value.clone().into_inner(),
+            )
+            .unwrap(),
         }
     }
 }
@@ -136,9 +138,8 @@ pub fn revocation_registry_definition_get_id(rev_reg_def: &RevocationRegistryDef
 pub fn revocation_registry_definition_to_string(
     rev_reg_def: &RevocationRegistryDefinition,
 ) -> VdrResult<String> {
-    let rev_reg = RevocationRegistryDefinition_::from(rev_reg_def);    
-    rev_reg.to_string()
-        .map_err(VdrError::from)
+    let rev_reg = RevocationRegistryDefinition_::from(rev_reg_def);
+    rev_reg.to_string().map_err(VdrError::from)
 }
 
 #[uniffi::export]
@@ -149,7 +150,6 @@ pub fn revocation_registry_definition_from_string(
         .map(RevocationRegistryDefinition::from)
         .map_err(VdrError::from)
 }
-
 
 // Revocation Registry Entry functions
 
@@ -195,7 +195,7 @@ pub async fn resolve_revocation_registry_status_list(
         timestamp,
     )
     .await
-    .map(|status_list| json!(status_list))
+    .map(|status_list| JsonValue::from(json!(status_list)))
     .map_err(VdrError::from)
 }
 
@@ -227,7 +227,10 @@ impl From<&RevocationRegistryEntry> for RevocationRegistryEntry_ {
         RevocationRegistryEntry_ {
             issuer_id: DID::from(entry.issuer_id.as_str()),
             rev_reg_def_id: RevocationRegistryDefinitionId::from(entry.rev_reg_def_id.as_str()),
-            rev_reg_entry_data: serde_json::from_value(entry.rev_reg_entry_data.clone()).unwrap(),
+            rev_reg_entry_data: serde_json::from_value(
+                entry.rev_reg_entry_data.clone().into_inner(),
+            )
+            .unwrap(),
         }
     }
 }
@@ -237,7 +240,9 @@ impl From<RevocationRegistryEntry_> for RevocationRegistryEntry {
         RevocationRegistryEntry {
             issuer_id: entry.issuer_id.as_ref().to_string(),
             rev_reg_def_id: entry.rev_reg_def_id.as_ref().to_string(),
-            rev_reg_entry_data: serde_json::to_value(entry.rev_reg_entry_data).unwrap(),
+            rev_reg_entry_data: JsonValue::from(
+                serde_json::to_value(entry.rev_reg_entry_data).unwrap(),
+            ),
         }
     }
 }
@@ -273,7 +278,9 @@ impl From<&RevocationStatusList> for RevocationStatusList_ {
     fn from(status_list: &RevocationStatusList) -> Self {
         RevocationStatusList_ {
             issuer_id: DID::from(status_list.issuer_id.as_str()),
-            rev_reg_def_id: RevocationRegistryDefinitionId::from(status_list.rev_reg_def_id.as_str()),
+            rev_reg_def_id: RevocationRegistryDefinitionId::from(
+                status_list.rev_reg_def_id.as_str(),
+            ),
             timestamp: status_list.timestamp,
             revocation_list: status_list.revocation_list.clone(),
             current_accumulator: status_list.current_accumulator.clone(),
@@ -294,9 +301,7 @@ impl From<RevocationStatusList_> for RevocationStatusList {
 }
 
 #[uniffi::export]
-pub fn revocation_status_list_to_string(
-    status_list: &RevocationStatusList,
-) -> VdrResult<String> {
+pub fn revocation_status_list_to_string(status_list: &RevocationStatusList) -> VdrResult<String> {
     RevocationStatusList_::from(status_list)
         .to_string()
         .map_err(VdrError::from)

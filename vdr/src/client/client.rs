@@ -508,7 +508,7 @@ pub mod test {
             &CONFIG.node_address,
             &contracts(),
             Some(TEST_NETWORK),
-            Some(&QuorumConfig::default()),
+            None,
         )
         .unwrap();
 

@@ -95,7 +95,42 @@ pub async fn build_create_revocation_registry_entry_transaction(
     from: &Address,
     revocation_registry_entry: &RevocationRegistryEntry,
 ) -> VdrResult<Transaction> {
-    revocation_registry_entry.validate()?;
+    // Resolve latest status list do ledger
+    let status_list = match resolve_revocation_registry_status_list(
+        client,
+        &revocation_registry_entry.rev_reg_def_id,
+        u64::MAX,
+    )
+    .await
+    {
+        Ok(list) => Some(list),
+        Err(VdrError::InvalidRevocationRegistryStatusList(_)) => {
+            log::info!("First use, revocation registry not exists.");
+            None
+        }
+        Err(e) => return Err(e), // outros erros continuam falhando
+    };
+
+    // Delegar tudo para a função interna
+    build_create_revocation_registry_entry_transaction_internal(
+        client,
+        from,
+        revocation_registry_entry,
+        status_list,
+    )
+    .await
+}
+
+// Function without ledger for unit tests
+async fn build_create_revocation_registry_entry_transaction_internal(
+    client: &LedgerClient,
+    from: &Address,
+    revocation_registry_entry: &RevocationRegistryEntry,
+    status_list: Option<RevocationStatusList>,
+) -> VdrResult<Transaction> {
+    // 1. Local validation
+    revocation_registry_entry.validate_with_status_list(&status_list)?;
+
     let identity = Address::try_from(&revocation_registry_entry.issuer_id)?;
 
     TransactionBuilder::new()
@@ -161,7 +196,39 @@ pub async fn build_create_revocation_registry_entry_endorsing_data(
     client: &LedgerClient,
     revocation_registry_entry: &RevocationRegistryEntry,
 ) -> VdrResult<TransactionEndorsingData> {
-    revocation_registry_entry.validate()?;
+    let status_list = match resolve_revocation_registry_status_list(
+        client,
+        &revocation_registry_entry.rev_reg_def_id,
+        u64::MAX,
+    )
+    .await
+    {
+        Ok(list) => Some(list),
+        Err(VdrError::InvalidRevocationRegistryStatusList(_)) => {
+            log::info!("First use, revocation registry not exists.");
+            None
+        }
+        Err(e) => return Err(e), // outros erros continuam falhando
+    };
+
+    // Delegar tudo para a função interna
+    build_create_revocation_registry_entry_endorsing_data_internal(
+        client,
+        revocation_registry_entry,
+        status_list,
+    )
+    .await
+}
+
+// Function without ledger for unit tests
+pub async fn build_create_revocation_registry_entry_endorsing_data_internal(
+    client: &LedgerClient,
+    revocation_registry_entry: &RevocationRegistryEntry,
+    status_list: Option<RevocationStatusList>,
+) -> VdrResult<TransactionEndorsingData> {
+    // 1. Local validation
+    revocation_registry_entry.validate_with_status_list(&status_list)?;
+
     let identity = Address::try_from(&revocation_registry_entry.issuer_id)?;
 
     TransactionEndorsingDataBuilder::new()
@@ -843,19 +910,34 @@ pub mod test {
             assert_eq!(expected_transaction, transaction);
         }
 
+        fn fake_status_list() -> RevocationStatusList {
+            RevocationStatusList {
+                current_accumulator: "123".to_string(),
+                revocation_list: vec![],
+                rev_reg_def_id: RevocationRegistryDefinitionId::from(
+                    REVOCATION_REGISTRY_DEFINITION_ID,
+                ),
+                issuer_id: DID::from(TEST_ETHR_DID_WITHOUT_NETWORK),
+                timestamp: u64::MAX,
+            }
+        }
+
         #[async_std::test]
         async fn build_create_revocation_registry_entry_transaction_test() {
             let client = mock_client();
+
             let rev_reg_entry = revocation_registry_entry(
                 &DID::from(TEST_ETHR_DID_WITHOUT_NETWORK),
                 &&RevocationRegistryDefinitionId::from(REVOCATION_REGISTRY_DEFINITION_ID),
                 None,
-                None,
+                Some("123"),
+                Some("123"),
             );
-            let transaction = build_create_revocation_registry_entry_transaction(
+            let transaction = build_create_revocation_registry_entry_transaction_internal(
                 &client,
                 &TEST_ACCOUNT,
                 &rev_reg_entry,
+                Some(fake_status_list()),
             )
             .await
             .unwrap();
@@ -877,7 +959,7 @@ pub mod test {
                     120, 102, 48, 101, 50, 100, 98, 54, 99, 56, 100, 99, 54, 99, 54, 56, 49, 98,
                     98, 53, 100, 54, 97, 100, 49, 50, 49, 97, 49, 48, 55, 102, 51, 48, 48, 101, 57,
                     98, 50, 98, 53, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 94, 123,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 86, 123,
                     34, 114, 101, 118, 82, 101, 103, 68, 101, 102, 73, 100, 34, 58, 34, 100, 105,
                     100, 58, 101, 116, 104, 114, 58, 48, 120, 102, 48, 101, 50, 100, 98, 54, 99,
                     56, 100, 99, 54, 99, 54, 56, 49, 98, 98, 53, 100, 54, 97, 100, 49, 50, 49, 97,
@@ -893,11 +975,11 @@ pub mod test {
                     98, 98, 53, 100, 54, 97, 100, 49, 50, 49, 97, 49, 48, 55, 102, 51, 48, 48, 101,
                     57, 98, 50, 98, 53, 34, 44, 34, 114, 101, 118, 82, 101, 103, 69, 110, 116, 114,
                     121, 68, 97, 116, 97, 34, 58, 123, 34, 99, 117, 114, 114, 101, 110, 116, 65,
-                    99, 99, 117, 109, 117, 108, 97, 116, 111, 114, 34, 58, 34, 99, 117, 114, 114,
-                    101, 110, 116, 65, 99, 99, 117, 109, 34, 44, 34, 112, 114, 101, 118, 65, 99,
-                    99, 117, 109, 117, 108, 97, 116, 111, 114, 34, 58, 110, 117, 108, 108, 44, 34,
-                    105, 115, 115, 117, 101, 100, 34, 58, 110, 117, 108, 108, 44, 34, 114, 101,
-                    118, 111, 107, 101, 100, 34, 58, 110, 117, 108, 108, 125, 125, 0, 0,
+                    99, 99, 117, 109, 117, 108, 97, 116, 111, 114, 34, 58, 34, 49, 50, 51, 34, 44,
+                    34, 112, 114, 101, 118, 65, 99, 99, 117, 109, 117, 108, 97, 116, 111, 114, 34,
+                    58, 34, 49, 50, 51, 34, 44, 34, 105, 115, 115, 117, 101, 100, 34, 58, 110, 117,
+                    108, 108, 44, 34, 114, 101, 118, 111, 107, 101, 100, 34, 58, 110, 117, 108,
+                    108, 125, 125, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 ],
                 signature: None,
                 hash: None,
@@ -982,45 +1064,66 @@ pub mod test {
         }
     }
 
-    //TODO:
-    // mod build_resolve_revocation_registry_events {
-    //     use crate::{
-    //         client::{client::test::mock_custom_client, MockClient},
-    //         contracts::anoncreds::types::{
-    //             credential_definition::test::CREDENTIAL_DEFINITION_ID_WITHOUT_NETWORK,
-    //             revocation_registry_definition::test::{
-    //                 revocation_registry_definition, REVOCATION_REGISTRY_DEFINITION_ID, REVOCATION_REGISTRY_DEFINITION_TAG,
-    //             },
-    //         },
-    //         CredentialDefinitionId,
-    //     };
+    mod build_resolve_revocation_registry_events {
+        use crate::{
+            client::{client::test::mock_custom_client, MockClient},
+            contracts::anoncreds::types::{
+                credential_definition::test::CREDENTIAL_DEFINITION_ID_WITHOUT_NETWORK,
+                revocation_registry_definition::test::{
+                    revocation_registry_definition, REVOCATION_REGISTRY_DEFINITION_ID,
+                    REVOCATION_REGISTRY_DEFINITION_TAG,
+                },
+            },
+            CredentialDefinitionId,
+        };
 
-    //     use super::*;
+        use super::*;
 
-    //     #[async_std::test]
-    //     async fn receive_revocation_registry_history_test() {
-    //         let mut mock_client = MockClient::new();
-    //         mock_client.expect_query_events().returning(|_| {
-    //             Ok(vec![]) // empty logs for now
-    //         });
-    //         mock_client
-    //             .expect_call_transaction()
-    //             .returning(|_to, _data| Ok(vec![]));
+        #[async_std::test]
+        async fn receive_revocation_registry_history_unit_test() {
+            // 1. Criar MockClient
+            let mut mock_client = MockClient::new();
 
-    //         mock_client
-    //             .expect_submit_transaction()
-    //             .returning(|_tx| Ok(vec![]));
-    //         let client = mock_custom_client(Box::new(mock_client));
-    //         let rev_reg_def = revocation_registry_definition(
-    //             &DID::from(TEST_ETHR_DID_WITHOUT_NETWORK),
-    //             &&CredentialDefinitionId::from(CREDENTIAL_DEFINITION_ID_WITHOUT_NETWORK),
-    //             Some(REVOCATION_REGISTRY_DEFINITION_TAG),
-    //         );
-    //         let rev_reg_def_id = RevocationRegistryDefinitionId::from(REVOCATION_REGISTRY_DEFINITION_ID);
-    //         let logs = receive_revocation_registry_history(&client, &rev_reg_def_id).await;
-    //         assert!(logs.is_ok());
+            // 2. Mockar todas as chamadas externas
+            mock_client
+                .expect_get_transaction_count()
+                .returning(|_| Ok(0));
 
-    //         // let logs = logs.unwrap();
-    //     }
-    // }
+            mock_client.expect_query_events().returning(|_| Ok(vec![])); // sem eventos
+
+            mock_client
+                .expect_call_transaction()
+                .returning(|_to, _data| {
+                    // Retorna accumulator fake para o ledger
+                    Ok(vec![0u8; 32])
+                });
+
+            mock_client
+                .expect_submit_transaction()
+                .returning(|_tx| Ok(vec![]));
+
+            // 3. Criar LedgerClient usando mock_custom_client
+            let client = mock_custom_client(Box::new(mock_client));
+
+            // 4. Criar revocation registry definition fake
+            let rev_reg_def = revocation_registry_definition(
+                &DID::from(TEST_ETHR_DID_WITHOUT_NETWORK),
+                &&CredentialDefinitionId::from(CREDENTIAL_DEFINITION_ID_WITHOUT_NETWORK),
+                Some(REVOCATION_REGISTRY_DEFINITION_TAG),
+            );
+
+            let rev_reg_def_id =
+                RevocationRegistryDefinitionId::from(REVOCATION_REGISTRY_DEFINITION_ID);
+
+            // 5. Chamar a função real, mas tudo vai passar pelo mock
+            let logs_result = receive_revocation_registry_history(&client, &rev_reg_def_id).await;
+
+            // 6. Validar que deu Ok
+            assert!(logs_result.is_ok());
+
+            // 7. Opcional: validar que os logs estão vazios, já que nosso mock retornou vec![]
+            let logs = logs_result.unwrap();
+            assert!(logs.is_empty());
+        }
+    }
 }

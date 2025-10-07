@@ -29,7 +29,7 @@ def sign(secret: str, data: bytes):
     signature = keys.PrivateKey(bytearray.fromhex(secret)).sign_msg_hash(data)
     rec_id = int(signature[-1:][0])
     sig = signature[0:-1]
-    return SignatureData(rec_id, sig)
+    return SignatureData(recovery_id = rec_id, signature = sig)
 
 
 def read_config():
@@ -58,10 +58,10 @@ async def demo():
     revocation_registry_contract_spec_path = "{}/{}".format(project_root, revocation_registry_contract["specPath"])
 
     contract_configs = [
-        ContractConfig(did_contract_address, did_contract_spec_path, None),
-        ContractConfig(schema_contract_address, schema_contract_spec_path, None),
-        ContractConfig(credential_definition_contract_address, credential_definition_contract_spec_path, None),
-        ContractConfig(revocation_registry_contract_address, revocation_registry_contract_spec_path, None)
+        ContractConfig(address = did_contract_address, spec_path = did_contract_spec_path, spec = None),
+        ContractConfig(address = schema_contract_address, spec_path = schema_contract_spec_path, spec = None),
+        ContractConfig(address = credential_definition_contract_address, spec_path = credential_definition_contract_spec_path, spec = None),
+        ContractConfig(address = revocation_registry_contract_address, spec_path = revocation_registry_contract_spec_path, spec = None)
     ]
     client = LedgerClient(config["chainId"], config["nodeAddress"], contract_configs, network, None)
     status = await client.ping()
@@ -134,8 +134,8 @@ async def demo():
     print(' Resolved Credential Definition:' + resolved_cred_def.to_string())
 
     print("8. Publish Revocation Registry Definition")
-    revocation_registry = RevocationRegistryDefinition(issuer_id=did, cred_def_id=cred_def.id, revoc_def_type="CL_ACCUM", tag="rev_reg_def_tag", 
-        value="{"
+    revocation_registry = RevocationRegistryDefinition(issuer_id = did, cred_def_id = cred_def.id, revoc_def_type = "CL_ACCUM", tag = "rev_reg_def_tag", 
+        value = "{"
         "    \"publicKeys\": {"
             "    \"accumKey\": {"
             "        \"z\": \"1 0BB...386\""
@@ -166,7 +166,7 @@ async def demo():
     revocation_registry_entry = RevocationRegistryEntry(did, revocation_registry.id, 
         "{"
         "    \"currentAccumulator\": \"1 0BB...386\","
-        "    \"prevAccumulator\": \"1 0BB...386\","
+#        "    \"prevAccumulator\": \"0\","
         "    \"revoked\": ["
         "        1, 2, 3"
         "    ],"

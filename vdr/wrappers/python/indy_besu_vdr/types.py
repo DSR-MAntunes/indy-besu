@@ -26,14 +26,14 @@ class Transaction(indy_besu_vdr.indy_besu_vdr.Transaction):
     @classmethod
     def init(cls, transaction: indy_besu_vdr.indy_besu_vdr.Transaction) -> "Transaction":
         return Transaction(
-            transaction.type,
-            transaction._from,
-            transaction.to,
-            transaction.nonce,
-            transaction.chain_id,
-            transaction.data,
-            transaction.signature,
-            transaction.hash,
+            type = transaction.type,
+            _from = transaction._from,
+            to = transaction.to,
+            nonce = transaction.nonce,
+            chain_id = transaction.chain_id,
+            data = transaction.data,
+            signature = transaction.signature,
+            hash = transaction.hash,
         )
 
 
@@ -54,14 +54,14 @@ class TransactionEndorsingData(indy_besu_vdr.indy_besu_vdr.TransactionEndorsingD
     @classmethod
     def init(cls, transaction: indy_besu_vdr.indy_besu_vdr.TransactionEndorsingData) -> "TransactionEndorsingData":
         return TransactionEndorsingData(
-            transaction.to,
-            transaction._from,
-            transaction.nonce,
-            transaction.contract,
-            transaction.method,
-            transaction.endorsing_method,
-            transaction.params,
-            transaction.signature,
+            to = transaction.to,
+            _from = transaction._from,
+            nonce = transaction.nonce,
+            contract = transaction.contract,
+            method = transaction.method,
+            endorsing_method = transaction.endorsing_method,
+            params = transaction.params,
+            signature = transaction.signature,
         )
 
 
@@ -215,7 +215,7 @@ class DidResolver:
 
 class Schema(indy_besu_vdr.indy_besu_vdr.Schema):
     def __init__(self, issuer_id: "str", name: "str", version: "str", attr_names: "typing.List[str]"):
-        super().__init__(issuer_id, name, version, attr_names)
+        super().__init__(issuer_id = issuer_id, name = name, version = version, attr_names = attr_names)
 
     @property
     def id(self) -> str:
@@ -224,10 +224,10 @@ class Schema(indy_besu_vdr.indy_besu_vdr.Schema):
     @classmethod
     def init(cls, schema: indy_besu_vdr.indy_besu_vdr.Schema) -> "Schema":
         return Schema(
-            schema.issuer_id,
-            schema.name,
-            schema.version,
-            schema.attr_names,
+            issuer_id = schema.issuer_id,
+            name = schema.name,
+            version = schema.version,
+            attr_names = schema.attr_names,
         )
 
     def to_string(self) -> str:
@@ -262,7 +262,7 @@ class SchemaRegistry:
 
 class CredentialDefinition(indy_besu_vdr.indy_besu_vdr.CredentialDefinition):
     def __init__(self, issuer_id: "str", schema_id: "str", cred_def_type: "str", tag: "str", value: "JsonValue"):
-        super().__init__(issuer_id, schema_id, cred_def_type, tag, value)
+        super().__init__(issuer_id = issuer_id, schema_id = schema_id, cred_def_type = cred_def_type, tag = tag, value = value)
 
     @property
     def id(self) -> str:
@@ -271,11 +271,11 @@ class CredentialDefinition(indy_besu_vdr.indy_besu_vdr.CredentialDefinition):
     @classmethod
     def init(cls, cred_def: indy_besu_vdr.indy_besu_vdr.CredentialDefinition) -> "CredentialDefinition":
         return CredentialDefinition(
-            cred_def.issuer_id,
-            cred_def.schema_id,
-            cred_def.cred_def_type,
-            cred_def.tag,
-            cred_def.value,
+            issuer_id = cred_def.issuer_id,
+            schema_id = cred_def.schema_id,
+            cred_def_type = cred_def.cred_def_type,
+            tag = cred_def.tag,
+            value = cred_def.value,
         )
 
     def to_string(self) -> str:
@@ -317,7 +317,7 @@ class RevocationRegistryDefinition(indy_besu_vdr.indy_besu_vdr.RevocationRegistr
         self.cred_def_id = cred_def_id
         self.tag = tag
         self.value = value
-        super().__init__(issuer_id, revoc_def_type, cred_def_id, tag, value)
+        super().__init__(issuer_id = issuer_id, revoc_def_type = revoc_def_type, cred_def_id = cred_def_id, tag = tag, value = value)
 
     @property
     def id(self) -> str:
@@ -326,11 +326,11 @@ class RevocationRegistryDefinition(indy_besu_vdr.indy_besu_vdr.RevocationRegistr
     @classmethod
     def init(cls, revocation_registry: indy_besu_vdr.indy_besu_vdr.RevocationRegistryDefinition) -> "RevocationRegistryDefinition":
         return RevocationRegistryDefinition(
-            revocation_registry.issuer_id,
-            revocation_registry.revoc_def_type,
-            revocation_registry.cred_def_id,
-            revocation_registry.tag,
-            revocation_registry.value,
+            issuer_id = revocation_registry.issuer_id,
+            revoc_def_type = revocation_registry.revoc_def_type,
+            cred_def_id = revocation_registry.cred_def_id,
+            tag = revocation_registry.tag,
+            value = revocation_registry.value,
         )
 
     def to_string(self) -> str:
@@ -342,7 +342,7 @@ class RevocationRegistryDefinition(indy_besu_vdr.indy_besu_vdr.RevocationRegistr
     
 class RevocationRegistryEntry(indy_besu_vdr.indy_besu_vdr.RevocationRegistryEntry):
     def __init__(self, issuer_id: "str", rev_reg_def_id: "str", rev_reg_entry_data: "JsonValue"):
-        super().__init__(issuer_id, rev_reg_def_id, rev_reg_entry_data)
+        super().__init__(issuer_id = issuer_id, rev_reg_def_id = rev_reg_def_id, rev_reg_entry_data = rev_reg_entry_data)
         self.issuer_id = issuer_id
         self.rev_reg_def_id = rev_reg_def_id
         self.rev_reg_entry_data = rev_reg_entry_data
@@ -364,7 +364,7 @@ class RevocationRegistryEntry(indy_besu_vdr.indy_besu_vdr.RevocationRegistryEntr
     
 class RevocationStatusList(indy_besu_vdr.indy_besu_vdr.RevocationStatusList):
     def __init__(self, issuer_id: "str", rev_reg_def_id: "str", timestamp: "int", revocation_list: "typing.List[int]", current_accumulator: "str"):
-        super().__init__(issuer_id, rev_reg_def_id, timestamp, revocation_list, current_accumulator)
+        super().__init__(issuer_id = issuer_id, rev_reg_def_id = rev_reg_def_id, timestamp = timestamp, revocation_list = revocation_list, current_accumulator = current_accumulator)
         self.issuer_id = issuer_id
         self.rev_reg_def_id = rev_reg_def_id
         self.timestamp = timestamp
@@ -374,11 +374,11 @@ class RevocationStatusList(indy_besu_vdr.indy_besu_vdr.RevocationStatusList):
     @classmethod
     def init(cls, revocation_status_list: indy_besu_vdr.indy_besu_vdr.RevocationStatusList) -> "RevocationStatusList":
         return RevocationStatusList(
-            revocation_status_list.issuer_id,
-            revocation_status_list.rev_reg_def_id,
-            revocation_status_list.timestamp,
-            revocation_status_list.revocation_list,
-            revocation_status_list.current_accumulator,
+            issuer_id = revocation_status_list.issuer_id,
+            rev_reg_def_id = revocation_status_list.rev_reg_def_id,
+            timestamp = revocation_status_list.timestamp,
+            revocation_list = revocation_status_list.revocation_list,
+            current_accumulator = revocation_status_list.current_accumulator,
         )
     
     def to_string(self) -> str:

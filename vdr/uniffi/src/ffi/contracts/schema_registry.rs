@@ -21,10 +21,14 @@ pub async fn build_create_schema_transaction(
     from: &str,
     schema: &Schema,
 ) -> VdrResult<Transaction> {
-    schema_registry::build_create_schema_transaction(&client.client, &Address::from(from), &Schema_::from(schema))
-        .await
-        .map(Transaction::from)
-        .map_err(VdrError::from)
+    schema_registry::build_create_schema_transaction(
+        &client.client,
+        &Address::from(from),
+        &Schema_::from(schema),
+    )
+    .await
+    .map(Transaction::from)
+    .map_err(VdrError::from)
 }
 
 #[uniffi::export(async_runtime = "tokio")]
@@ -52,7 +56,7 @@ pub async fn build_resolve_schema_transaction(
 #[uniffi::export]
 pub fn parse_resolve_schema_result(client: &LedgerClient, bytes: Vec<u8>) -> VdrResult<JsonValue> {
     let record = schema_registry::parse_resolve_schema_result(&client.client, &bytes)?;
-    Ok(json!(record))
+    Ok(JsonValue::from(json!(record)))
 }
 
 #[uniffi::export(async_runtime = "tokio")]
