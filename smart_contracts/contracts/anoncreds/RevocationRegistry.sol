@@ -55,6 +55,16 @@ contract RevocationRegistry is RevocationRegistryInterface, ControlledUpgradeabl
         _;
     }
 
+    /**
+     * Checks that the provided issuerId is the original publisher of the Revocation Registry Definition
+     */
+    modifier _checkIssuer(string memory issuerId, bytes32 revRegDefId) {
+        if (!StringUtils.equals(_revRegDefs[revRegDefId].metadata.issuerId, issuerId)) {
+            revert NotRevocationRegistryDefinitionIssuer(issuerId);
+        }
+        _;
+    }
+
     function initialize(
         address upgradeControlAddress,
         address didResolverAddress,
@@ -181,6 +191,7 @@ contract RevocationRegistry is RevocationRegistryInterface, ControlledUpgradeabl
     {
         _revRegDefs[id].revRegDef = revRegDef;
         _revRegDefs[id].metadata.created = block.timestamp;
+        _revRegDefs[id].metadata.issuerId = issuerId;
         _lastEventBlockNumbers[id] = 0;
 
         emit RevocationRegistryDefinitionCreated(id, identity);
@@ -197,6 +208,7 @@ contract RevocationRegistry is RevocationRegistryInterface, ControlledUpgradeabl
         _senderIsTrusteeOrEndorserOrSteward
         _revRecDefExist(revRegDefId)
         _validIssuer(issuerId, identity, actor)
+        _checkIssuer(issuerId, revRegDefId)
     {
         emit RevocationRegistryEntryCreated(
             revRegDefId,

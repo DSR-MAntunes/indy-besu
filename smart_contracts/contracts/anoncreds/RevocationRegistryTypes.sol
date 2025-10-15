@@ -19,7 +19,9 @@ struct RevocationRegistryDefinitionRecord {
  * @dev This struct holds additional metadata for a revocation registry definition.
  *
  * @param created - Timestamp indicating when the revocation registry definition was created.
+ * @param issuerId - DID of revocation registry issuer.
  */
 struct RevocationRegistryDefinitionMetadata {
     uint256 created;
+    string issuerId;
 }
