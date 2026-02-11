@@ -22,11 +22,8 @@ jobs:
           registry-url: 'https://npm.pkg.github.com'
           scope: '@hyperledger-indy'
 
-      - name: Enable Corepack
-        run: corepack enable
-
       - name: Install dependencies
-        run: yarn install --immutable
+        run: yarn install --frozen-lockfile
         working-directory: smart_contracts
 
       - name: Compile smart contracts
@@ -35,6 +32,6 @@ jobs:
 
       - name: Publish to GitHub Package Registry
         working-directory: smart_contracts
-        run: yarn npm publish
+        run: npm publish
         env:
           YARN_NPM_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
