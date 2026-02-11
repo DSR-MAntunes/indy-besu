@@ -1,5 +1,5 @@
 {
-  "name": "@indy-ledger/contracts",
+  "name": "@dsr-mantunes/indy-besu-contracts",
   "version": "1.0.0",
   "description": "Smart contracts and helper tools for Indy Ledger",
   "scripts": {
