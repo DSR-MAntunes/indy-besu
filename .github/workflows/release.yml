@@ -35,3 +35,8 @@ jobs:
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # GitHub packages does not support Rust packages
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
