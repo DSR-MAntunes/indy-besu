@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  # Run on every pull request, manually and on pushes to main (PR merged).
   pull_request:
     paths: "**"
 
